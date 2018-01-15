@@ -10,6 +10,21 @@ public enum ComparisonOperator
 
 public static class PhysicsUtilities
 {
+    private static int groundLayers = -1;
+    public static int GroundLayers
+    {
+
+        get
+        {
+            if (groundLayers == -1)
+            {
+                groundLayers = LayerMask.NameToLayer("Ground");
+            }
+            return groundLayers;
+        }
+    }
+
+
     /// <summary>
     /// Pass in a rigidbody and what comparison to perform, returns true or false
     /// </summary>
@@ -36,6 +51,7 @@ public static class PhysicsUtilities
 
     public static bool CompareTransformDistanceToGround(Transform targetTransform, ComparisonOperator comparisonOperator, float comparisonValue, LayerMask groundLayers)
     {
+        //add offset to y position cuz unity physics
         RaycastHit[] hits = Physics.RaycastAll(targetTransform.position + Vector3.up, Vector3.down, groundLayers.value);
         foreach (RaycastHit hit in hits)
         {
@@ -75,16 +91,13 @@ public static class PhysicsUtilities
         return targetTransform.position;
     }
 
-    public static Vector3 FindPointOnGround(Vector3 targetPosition, LayerMask groundLayers, int maxDistance = 5)
+    public static Vector3 FindPointOnGround(Vector3 targetPosition, int maxDistance = 5, int overrideLayers = -1)
     {
         //add offset to y position cuz unity physics
-        RaycastHit[] hits = Physics.RaycastAll(targetPosition + Vector3.up, Vector3.down, maxDistance, groundLayers.value);
+        RaycastHit[] hits = Physics.RaycastAll(targetPosition + Vector3.up, Vector3.down, maxDistance, groundLayers);
         foreach (RaycastHit hit in hits)
         {
-            if (hit.collider.tag == "Ground")
-            {
-                return hit.point;
-            }
+            return hit.point;
         }
         return targetPosition;
     }
@@ -95,24 +108,7 @@ public static class PhysicsUtilities
         RaycastHit[] hits = Physics.RaycastAll(position + Vector3.up, Vector3.down, maxDistance, groundLayers.value);
         foreach (RaycastHit hit in hits)
         {
-            if (hit.collider.tag == "Ground")
-            {
-                return hit.transform;
-            }
-        }
-        return null;
-    }
-
-    public static Transform FindPointOnGround(Vector3 position, int groundLayers, int maxDistance = 5)
-    {
-        //add offset to y position cuz unity physics
-        RaycastHit[] hits = Physics.RaycastAll(position + Vector3.up, Vector3.down, maxDistance, groundLayers);
-        foreach (RaycastHit hit in hits)
-        {
-            if (hit.collider.tag == "Ground")
-            {
-                return hit.transform;
-            }
+            return hit.transform;
         }
         return null;
     }

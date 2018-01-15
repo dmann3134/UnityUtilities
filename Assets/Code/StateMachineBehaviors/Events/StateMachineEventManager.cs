@@ -3,29 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-public class AnimationEvent : StateMachineBehaviour
+public class StateMachineEventManager : StateMachineBehaviour
 {
-    public List<TimeEvent> Events = new List<TimeEvent>();
-
-    [Serializable]
-    public class TimeEvent
-    {
-        public string Name;
-        [HideInInspector]
-        public bool hasBeenFired = false;
-        [Range(0, 1)]
-        public float eventTime;
-
-        public virtual void Reset()
-        {
-
-        }
-
-        public virtual void Fire()
-        {
-            hasBeenFired = true;
-        }
-    }
+    public List<StateMachineEvent> Events = new List<StateMachineEvent>();
 
     public void OnEnable()
     {
@@ -39,11 +19,11 @@ public class AnimationEvent : StateMachineBehaviour
 
     public override void OnStateUpdate(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
     {
-        for (int j = 0; j < Events.Count; j++)
+        for (int i = 0; i < Events.Count; i++)
         {
-            if (!Events[j].hasBeenFired && stateInfo.normalizedTime >= Events[j].eventTime)
+            if (!Events[i].hasBeenFired && stateInfo.normalizedTime >= Events[i].eventTime)
             {
-                Events[j].Fire();
+                Events[i].Fire();
             }
         }
     }
@@ -55,6 +35,9 @@ public class AnimationEvent : StateMachineBehaviour
 
     public virtual void Reset()
     {
-
+        for (int i = 0; i < Events.Count; i++)
+        {
+            Events[i].Reset();
+        }
     }
 }
