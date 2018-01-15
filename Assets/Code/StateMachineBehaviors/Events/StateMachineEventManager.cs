@@ -5,7 +5,7 @@ using System.Linq;
 
 public class StateMachineEventManager : StateMachineBehaviour
 {
-    public List<StateMachineEvent> Events = new List<StateMachineEvent>();
+    public List<StateEvent> Events = new List<StateEvent>();
 
     public void OnEnable()
     {
