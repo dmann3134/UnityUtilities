@@ -6,7 +6,6 @@ public class ObjectPool : MonoBehaviour
 	public PooledObject prefab;
 	List<PooledObject> availableObjects = new List<PooledObject>();
 
-  private int TargetPoolSize = 1;
   private static GameObject StaticAudioPoolReference;
   public static Dictionary<PooledObject, ObjectPool> StaticAudioPoolDictionary = new Dictionary<PooledObject, ObjectPool>();
 	private static GameObject StaticVFXPoolReference;
@@ -25,8 +24,10 @@ public class ObjectPool : MonoBehaviour
 	{
     if (prefab == null) return null;
 
+    ObjectPool pool;
+
     //USED TO BE //pretty costly
-    if(StaticAudioPoolReference == null)
+    if (StaticAudioPoolReference == null)
     { // not this tho
       StaticAudioPoolReference = GameObject.FindGameObjectWithTag("AudioPool");
     }
@@ -41,19 +42,22 @@ public class ObjectPool : MonoBehaviour
     
     if (StaticAudioPoolReference && StaticAudioPoolDictionary.ContainsKey(prefab))
     {
-      return StaticAudioPoolDictionary[prefab];
+      pool = StaticAudioPoolDictionary[prefab];
     }
     if (StaticVFXPoolReference && StaticVFXPoolDictionary.ContainsKey(prefab))
     {
-      return StaticVFXPoolDictionary[prefab];
+      pool = StaticVFXPoolDictionary[prefab];
     }
     if (StaticMiscPoolReference && StaticMiscPoolDictionary.ContainsKey(prefab))
     {
-      return StaticMiscPoolDictionary[prefab];
+      pool = StaticMiscPoolDictionary[prefab];
     }
 
-    // WE COULDN'T FIND IN OUR BIG POOLS ANY LITTLE POOLS POOLING THAT PREFAB
-    return CreateNewPool(prefab, poolSize);
+    pool = CreateNewPool(prefab, poolSize);
+
+    prefab.Pool = pool;
+
+    return pool;
 	}
 
   private static ObjectPool CreateNewPool(PooledObject prefab, int poolSize)
@@ -65,7 +69,7 @@ public class ObjectPool : MonoBehaviour
     pool = obj.AddComponent<ObjectPool>();
     pool.prefab = prefab;
 
-    //ghetto sorting
+    //store the objects in corresponding categories
     if (prefab.GetComponentInChildren<AudioSource>())
     {
       StaticAudioPoolDictionary[prefab] = pool;
@@ -104,14 +108,12 @@ public class ObjectPool : MonoBehaviour
       if (obj)
       {
         obj.gameObject.SetActive(true);
-        //Debug.LogFormat("Removing {0} from {1}", obj, this);
         availableObjects.RemoveAt(lastAvailableIndex);
       }
 		}
 		else
 		{
       obj = CreatePooledObject();
-      //Debug.LogFormat("Creating {0} from {1} and removing it", obj, this);
       int index = availableObjects.IndexOf(obj);
       availableObjects.RemoveAt(index);
 		}
@@ -134,12 +136,9 @@ public class ObjectPool : MonoBehaviour
 	/// <param name="obj">Generic pooled object</param>
 	public void AddObject(PooledObject obj)
 	{
-    // THIS IS WHERE WE WANT TO DECIDE WHETHER WE DISABLE
-    // THE GAME OBJECT OR JUST A RENDERER
     obj.HasBeenAddedToPool();
-    //obj.gameObject.SetActive(false);
     if (availableObjects.Contains(obj) == false)
-    { // I'M GONNA REGRET THIS CHECK, NOT WRONG JUST SLOW
+    {
       availableObjects.Add(obj);
     }
 	}

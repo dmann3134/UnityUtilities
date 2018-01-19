@@ -5,53 +5,15 @@ using System.Collections.Generic;
 public class ParticlePooledObject : PooledObject
 {
   private List<ParticleSystem> particleSystems;
-
   private bool hasBeenInitialized = false;
-
-  //private ParticleUtilities particleUtilities;
-
   public Actor Owner;
-
-    /*
-  private bool ParticleUtilitiesEnable
-  {
-    set
-    {
-      if (particleUtilities == null)
-      {
-        //FindUtil();
-      }
-      if (particleUtilities)
-      {
-        if (IsProjectile || value == false)
-        {
-          particleUtilities.DoNotRunUpdate();
-        }
-        else if (value)
-        {
-          particleUtilities.Restart();
-        }
-      }
-    }
-  }
-  */
-
-  private bool IsProjectile;
 
   public void Initialize()
   {
     particleSystems = new List<ParticleSystem>();
     particleSystems.AddRange(GetComponentsInChildren<ParticleSystem>());
-    //FindUtil();
     ResetParticles(false);
   }
-
-  /*
-  private void FindUtil()
-  {
-    particleUtilities = GetComponent<ParticleUtilities>();
-  }
-  */
 
   private void Update()
   {
@@ -66,50 +28,29 @@ public class ParticlePooledObject : PooledObject
   {
     CheckInitialization();
     //start playing all particles
-    PlayTheParticles();
+    particleSystems[0].Play(true);
 
     Animator anim = GetComponent<Animator>();
     if (anim) { ResetAnimator(anim); }
   }
 
-  public void PlayPooledParticle(Vector3 targetPosition, Quaternion rotation, LayerMask groundLayers, Transform parent = null, bool onGround = false, Actor owner = null)
+  public void PlayPooledParticle(ParticleSpawnInfo spawnInfo)
   {
     CheckInitialization();
 
-    if (!onGround)
-    {
-      transform.position = targetPosition;
-    }
-    else
-    {
-      transform.position = PhysicsUtilities.FindPointOnGround(targetPosition, groundLayers);
-      transform.position += new Vector3(0, 0.01f, 0);
-    }
+    transform.position = spawnInfo.SpawnPosition;
 
+    transform.rotation = spawnInfo.SpawnRotation;
 
-    /*
-    if(particleUtilities && particleUtilities.UseOverrideRotation)
-    {
-      transform.rotation = Quaternion.Euler(particleUtilities.OverrideRotation);
-    }
-    else
-    {
-      transform.rotation = rotation;
-    }
-    */
+    transform.parent = spawnInfo.parent;
 
-        transform.rotation = rotation;
-
-        transform.parent = parent;
-
-    Owner = owner;
+    Owner = spawnInfo.actor;
 
     Animator anim = GetComponent<Animator>();
     if (anim) { ResetAnimator(anim); }
 
     this.enabled = true;
-    //ParticleUtilitiesEnable = true;
-    PlayTheParticles();
+    particleSystems[0].Play(true);
   }
 
   public void PlayPooledParticle(Vector3 targetPosition, Quaternion rotation, Transform parent = null, Actor owner = null)
@@ -126,13 +67,8 @@ public class ParticlePooledObject : PooledObject
     if (anim) { ResetAnimator(anim); }
 
     this.enabled = true;
-    //ParticleUtilitiesEnable = true;
-    PlayTheParticles();
-  }
-
-  private void PlayTheParticles()
-  {
     particleSystems[0].Play(true);
+
   }
 
   public virtual void ResetParticles(bool returnToPool = true)
@@ -140,17 +76,14 @@ public class ParticlePooledObject : PooledObject
     //stop any playing particles, only need the top roo
     particleSystems[0].Stop(true);
 
-    //move to way the heck away
+    //move far out
     transform.position = new Vector3(-10000, -10000, -10000);
+
     //dont think we ever assign this
     transform.parent = Pool.transform;
 
-    //generate a seed
-    uint seed = (uint)UnityEngine.Random.Range(0, 99999999);
-
     foreach (ParticleSystem particle in particleSystems)
     {
-      //particle.randomSeed = seed;
       if (particle)
       {
         particle.Simulate(0, true, true);
